@@ -1,5 +1,7 @@
 import { useEffect, useState } from 'react';
 import { api } from './api';
+import Immunizations from './Immunizations';
+import Defaulters from './Defaulters';
 
 function ageInMonths(birthDate) {
   const b = new Date(birthDate);
@@ -121,8 +123,7 @@ function ChildForm({ token, onSaved, onCancel }) {
   );
 }
 
-function Children({ session, onLogout }) {
-  const { token, user } = session;
+function ChildrenTab({ token, onLogout }) {
   const [children, setChildren] = useState([]);
   const [q, setQ] = useState('');
   const [error, setError] = useState('');
@@ -148,20 +149,7 @@ function Children({ session, onLogout }) {
   }, [q, token, reloadKey, onLogout]);
 
   return (
-    <div className="page">
-      <header className="topbar">
-        <div>
-          <strong>Barangay San Nicolas 1 Health Center</strong>
-          <div className="muted">Digitized Target Client List (TCL)</div>
-        </div>
-        <div className="user">
-          {user.full_name} ({user.role})
-          <button className="secondary" onClick={onLogout}>
-            Log out
-          </button>
-        </div>
-      </header>
-
+    <div>
       <div className="toolbar">
         <input
           className="search"
@@ -224,6 +212,50 @@ function Children({ session, onLogout }) {
   );
 }
 
+function Shell({ session, onLogout }) {
+  const { token, user } = session;
+  const [tab, setTab] = useState('children');
+
+  return (
+    <div className="page">
+      <header className="topbar">
+        <div>
+          <strong>Barangay San Nicolas 1 Health Center</strong>
+          <div className="muted">Immunization &amp; Nutrition Monitoring</div>
+        </div>
+        <div className="user">
+          {user.full_name} ({user.role})
+          <button className="secondary" onClick={onLogout}>
+            Log out
+          </button>
+        </div>
+      </header>
+
+      <div className="tabs">
+        <button className={tab === 'children' ? 'active' : ''} onClick={() => setTab('children')}>
+          Children (TCL)
+        </button>
+        <button
+          className={tab === 'immunizations' ? 'active' : ''}
+          onClick={() => setTab('immunizations')}
+        >
+          Immunizations
+        </button>
+        <button
+          className={tab === 'defaulters' ? 'active' : ''}
+          onClick={() => setTab('defaulters')}
+        >
+          Defaulters
+        </button>
+      </div>
+
+      {tab === 'children' && <ChildrenTab token={token} onLogout={onLogout} />}
+      {tab === 'immunizations' && <Immunizations token={token} />}
+      {tab === 'defaulters' && <Defaulters token={token} />}
+    </div>
+  );
+}
+
 export default function App() {
   const [session, setSession] = useState(() => {
     try {
@@ -243,5 +275,5 @@ export default function App() {
     setSession(null);
   };
 
-  return session ? <Children session={session} onLogout={logout} /> : <Login onLogin={login} />;
+  return session ? <Shell session={session} onLogout={logout} /> : <Login onLogin={login} />;
 }

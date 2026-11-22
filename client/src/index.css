@@ -72,3 +72,15 @@ th { color: #4a5b6b; font-size: 0.8rem; text-transform: uppercase; letter-spacin
   .form-grid { grid-template-columns: 1fr; }
   table { display: block; overflow-x: auto; }
 }
+.tabs { display: flex; gap: 8px; margin-bottom: 16px; flex-wrap: wrap; }
+.tabs button { background: #e3e9ef; color: #1c2733; }
+.tabs button:hover { background: #d3dce5; }
+.tabs button.active { background: #1f7a5a; color: #fff; }
+.badge {
+  background: #fdeaea;
+  color: #a32424;
+  padding: 3px 8px;
+  border-radius: 12px;
+  font-size: 0.8rem;
+  white-space: nowrap;
+}
