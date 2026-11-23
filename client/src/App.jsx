@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { api } from './api';
 import Immunizations from './Immunizations';
 import Defaulters from './Defaulters';
+import Nutrition from './Nutrition';
 
 function ageInMonths(birthDate) {
   const b = new Date(birthDate);
@@ -247,11 +248,18 @@ function Shell({ session, onLogout }) {
         >
           Defaulters
         </button>
+        <button
+          className={tab === 'nutrition' ? 'active' : ''}
+          onClick={() => setTab('nutrition')}
+        >
+          Nutrition
+        </button>
       </div>
 
       {tab === 'children' && <ChildrenTab token={token} onLogout={onLogout} />}
       {tab === 'immunizations' && <Immunizations token={token} />}
       {tab === 'defaulters' && <Defaulters token={token} />}
+      {tab === 'nutrition' && <Nutrition token={token} />}
     </div>
   );
 }
