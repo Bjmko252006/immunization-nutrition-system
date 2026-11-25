@@ -4,6 +4,7 @@ import Immunizations from './Immunizations';
 import Defaulters from './Defaulters';
 import Nutrition from './Nutrition';
 import Reports from './Reports';
+import Accounts from './Accounts';
 
 function ageInMonths(birthDate) {
   const b = new Date(birthDate);
@@ -300,9 +301,20 @@ function ChildrenTab({ token, onLogout }) {
   );
 }
 
+// Aling tab ang nakikita ng bawat role (ayon sa Chapter 5)
+const TABS = [
+  { id: 'children', label: 'Children (TCL)', roles: ['BNS', 'BHW'] },
+  { id: 'immunizations', label: 'Immunizations', roles: ['BHW'] },
+  { id: 'defaulters', label: 'Defaulters', roles: ['BNS', 'BHW'] },
+  { id: 'nutrition', label: 'Nutrition', roles: ['BNS'] },
+  { id: 'reports', label: 'Reports', roles: ['BNS'] },
+  { id: 'accounts', label: 'Accounts', roles: ['BNS'] },
+];
+
 function Shell({ session, onLogout }) {
   const { token, user } = session;
   const [tab, setTab] = useState('children');
+  const visibleTabs = TABS.filter((t) => t.roles.includes(user.role));
 
   return (
     <div className="page">
@@ -320,33 +332,15 @@ function Shell({ session, onLogout }) {
       </header>
 
       <div className="tabs">
-        <button className={tab === 'children' ? 'active' : ''} onClick={() => setTab('children')}>
-          Children (TCL)
-        </button>
-        <button
-          className={tab === 'immunizations' ? 'active' : ''}
-          onClick={() => setTab('immunizations')}
-        >
-          Immunizations
-        </button>
-        <button
-          className={tab === 'defaulters' ? 'active' : ''}
-          onClick={() => setTab('defaulters')}
-        >
-          Defaulters
-        </button>
-        <button
-          className={tab === 'nutrition' ? 'active' : ''}
-          onClick={() => setTab('nutrition')}
-        >
-          Nutrition
-        </button>
-        <button
-          className={tab === 'reports' ? 'active' : ''}
-          onClick={() => setTab('reports')}
-        >
-          Reports
-        </button>
+        {visibleTabs.map((t) => (
+          <button
+            key={t.id}
+            className={tab === t.id ? 'active' : ''}
+            onClick={() => setTab(t.id)}
+          >
+            {t.label}
+          </button>
+        ))}
       </div>
 
       {tab === 'children' && <ChildrenTab token={token} onLogout={onLogout} />}
@@ -354,6 +348,7 @@ function Shell({ session, onLogout }) {
       {tab === 'defaulters' && <Defaulters token={token} />}
       {tab === 'nutrition' && <Nutrition token={token} />}
       {tab === 'reports' && <Reports token={token} />}
+      {tab === 'accounts' && <Accounts token={token} />}
     </div>
   );
 }
