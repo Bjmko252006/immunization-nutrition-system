@@ -12,6 +12,30 @@ function ageInMonths(birthDate) {
   return Math.max(months, 0);
 }
 
+const RISK_STYLE = {
+  Severe: { background: '#fde2e2', color: '#a11212' },
+  Moderate: { background: '#fff0d6', color: '#8a5a00' },
+  Normal: { background: '#dff3e6', color: '#176a3a' },
+  'Above Normal': { background: '#e3ecfb', color: '#1d4fa3' },
+};
+
+function RiskBadge({ risk }) {
+  if (!risk) return <span className="muted">Not assessed</span>;
+  return (
+    <span
+      style={{
+        ...RISK_STYLE[risk.risk_classification],
+        padding: '2px 8px',
+        borderRadius: '999px',
+        fontSize: '0.85em',
+        fontWeight: 600,
+      }}
+    >
+      {risk.risk_classification}
+    </span>
+  );
+}
+
 function Login({ onLogin }) {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
@@ -182,6 +206,7 @@ function ChildrenTab({ token, onLogout }) {
               <th>Child</th>
               <th>Sex</th>
               <th>Age (months)</th>
+              <th>Nutrition risk</th>
               <th>Guardian</th>
               <th>Contact</th>
               <th>Address</th>
@@ -190,7 +215,7 @@ function ChildrenTab({ token, onLogout }) {
           <tbody>
             {children.length === 0 && (
               <tr>
-                <td colSpan="7" className="muted center">
+                <td colSpan="8" className="muted center">
                   No records yet.
                 </td>
               </tr>
@@ -201,6 +226,9 @@ function ChildrenTab({ token, onLogout }) {
                 <td>{c.child_name}</td>
                 <td>{c.sex}</td>
                 <td>{ageInMonths(c.birth_date)}</td>
+                <td>
+                  <RiskBadge risk={c.latest_risk} />
+                </td>
                 <td>{c.guardian_name}</td>
                 <td>{c.guardian_contact}</td>
                 <td>{c.purok_address}</td>

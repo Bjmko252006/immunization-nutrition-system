@@ -1,6 +1,7 @@
 const express = require('express');
 const mongoose = require('mongoose');
 const Child = require('../models/Child');
+const NutritionAssessment = require('../models/NutritionAssessment');
 const { protect } = require('../middleware/auth');
 
 const router = express.Router();
@@ -14,6 +15,7 @@ const pickFields = (body) => {
 };
 
 // Listahan ng mga bata (may search: ?q=pangalan o TCL number)
+// Kasama ang pinakabagong nutrition risk ng bawat bata (latest_risk)
 router.get('/', async (req, res) => {
   try {
     const { q } = req.query;
@@ -23,7 +25,32 @@ router.get('/', async (req, res) => {
       filter = { $or: [{ child_name: rx }, { tcl_number: rx }, { guardian_name: rx }] };
     }
     const children = await Child.find(filter).sort({ createdAt: -1 });
-    res.json(children);
+
+    // pinakabagong assessment kada bata
+    const latest = await NutritionAssessment.aggregate([
+      { $match: { child_id: { $in: children.map((c) => c._id) } } },
+      { $sort: { date_measured: -1, createdAt: -1 } },
+      {
+        $group: {
+          _id: '$child_id',
+          risk_classification: { $first: '$risk_classification' },
+          date_measured: { $first: '$date_measured' },
+        },
+      },
+    ]);
+    const riskByChild = new Map(latest.map((l) => [String(l._id), l]));
+
+    res.json(
+      children.map((c) => {
+        const l = riskByChild.get(String(c._id));
+        return {
+          ...c.toObject(),
+          latest_risk: l
+            ? { risk_classification: l.risk_classification, date_measured: l.date_measured }
+            : null,
+        };
+      })
+    );
   } catch (err) {
     res.status(500).json({ message: 'Server error' });
   }
