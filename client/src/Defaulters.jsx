@@ -1,14 +1,36 @@
 import { useEffect, useState } from 'react';
 import { api } from './api';
 
+const DAY_MS = 86400000;
+
+// Bilangin ang mga araw sa kalendaryo (hindi oras), para hindi mag-iba
+// ang resulta depende sa oras ng araw o sa timezone.
+// Ang scheduled_date ay naka-save bilang hatinggabi ng UTC ng petsang pinili.
 function daysOverdue(date) {
-  return Math.floor((Date.now() - new Date(date).getTime()) / 86400000);
+  const s = new Date(date);
+  const scheduled = Date.UTC(s.getUTCFullYear(), s.getUTCMonth(), s.getUTCDate());
+  const now = new Date();
+  const today = Date.UTC(now.getFullYear(), now.getMonth(), now.getDate());
+  return Math.max(Math.round((today - scheduled) / DAY_MS), 0);
+}
+
+function formatDate(date) {
+  return new Date(date).toLocaleDateString('en-US', { timeZone: 'UTC' });
+}
+
+function currentRole() {
+  try {
+    return JSON.parse(localStorage.getItem('session')).user.role;
+  } catch {
+    return null;
+  }
 }
 
 export default function Defaulters({ token }) {
   const [rows, setRows] = useState([]);
   const [error, setError] = useState('');
   const [reloadKey, setReloadKey] = useState(0);
+  const canMark = currentRole() === 'BHW';
 
   useEffect(() => {
     api('/immunizations/defaulters', { token })
@@ -61,14 +83,14 @@ export default function Defaulters({ token }) {
               <td>
                 {r.vaccine_name} (Dose {r.dose_number})
               </td>
-              <td>{new Date(r.scheduled_date).toLocaleDateString()}</td>
+              <td>{formatDate(r.scheduled_date)}</td>
               <td>
                 <span className="badge">{daysOverdue(r.scheduled_date)} days</span>
               </td>
               <td>{r.child_id?.guardian_name}</td>
               <td>{r.child_id?.guardian_contact}</td>
               <td>
-                <button onClick={() => markGiven(r._id)}>Mark as given</button>
+                {canMark && <button onClick={() => markGiven(r._id)}>Mark as given</button>}
               </td>
             </tr>
           ))}
