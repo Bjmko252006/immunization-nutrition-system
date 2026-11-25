@@ -3,6 +3,7 @@ import { api } from './api';
 import Immunizations from './Immunizations';
 import Defaulters from './Defaulters';
 import Nutrition from './Nutrition';
+import Reports from './Reports';
 
 function ageInMonths(birthDate) {
   const b = new Date(birthDate);
@@ -324,12 +325,19 @@ function Shell({ session, onLogout }) {
         >
           Nutrition
         </button>
+        <button
+          className={tab === 'reports' ? 'active' : ''}
+          onClick={() => setTab('reports')}
+        >
+          Reports
+        </button>
       </div>
 
       {tab === 'children' && <ChildrenTab token={token} onLogout={onLogout} />}
       {tab === 'immunizations' && <Immunizations token={token} />}
       {tab === 'defaulters' && <Defaulters token={token} />}
       {tab === 'nutrition' && <Nutrition token={token} />}
+      {tab === 'reports' && <Reports token={token} />}
     </div>
   );
 }
