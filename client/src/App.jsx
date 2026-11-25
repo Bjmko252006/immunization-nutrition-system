@@ -82,8 +82,20 @@ const emptyForm = {
   purok_address: '',
 };
 
-function ChildForm({ token, onSaved, onCancel }) {
-  const [form, setForm] = useState(emptyForm);
+function ChildForm({ token, child, onSaved, onCancel }) {
+  const [form, setForm] = useState(() =>
+    child
+      ? {
+          tcl_number: child.tcl_number,
+          child_name: child.child_name,
+          birth_date: String(child.birth_date).slice(0, 10),
+          sex: child.sex,
+          guardian_name: child.guardian_name,
+          guardian_contact: child.guardian_contact,
+          purok_address: child.purok_address,
+        }
+      : emptyForm
+  );
   const [error, setError] = useState('');
   const set = (key) => (e) => setForm({ ...form, [key]: e.target.value });
 
@@ -91,7 +103,11 @@ function ChildForm({ token, onSaved, onCancel }) {
     e.preventDefault();
     setError('');
     try {
-      await api('/children', { method: 'POST', body: form, token });
+      if (child) {
+        await api(`/children/${child._id}`, { method: 'PUT', body: form, token });
+      } else {
+        await api('/children', { method: 'POST', body: form, token });
+      }
       onSaved();
     } catch (err) {
       setError(err.message);
@@ -100,7 +116,7 @@ function ChildForm({ token, onSaved, onCancel }) {
 
   return (
     <form className="card form-grid" onSubmit={submit}>
-      <h2>Register child (TCL)</h2>
+      <h2>{child ? 'Edit child (TCL)' : 'Register child (TCL)'}</h2>
       <div>
         <label>TCL number</label>
         <input value={form.tcl_number} onChange={set('tcl_number')} required />
@@ -153,6 +169,7 @@ function ChildrenTab({ token, onLogout }) {
   const [q, setQ] = useState('');
   const [error, setError] = useState('');
   const [showForm, setShowForm] = useState(false);
+  const [editing, setEditing] = useState(null);
   const [reloadKey, setReloadKey] = useState(0);
 
   useEffect(() => {
@@ -182,15 +199,28 @@ function ChildrenTab({ token, onLogout }) {
           value={q}
           onChange={(e) => setQ(e.target.value)}
         />
-        <button onClick={() => setShowForm(true)}>+ Register child</button>
+        <button
+          onClick={() => {
+            setEditing(null);
+            setShowForm(true);
+          }}
+        >
+          + Register child
+        </button>
       </div>
 
       {showForm && (
         <ChildForm
+          key={editing ? editing._id : 'new'}
           token={token}
-          onCancel={() => setShowForm(false)}
+          child={editing}
+          onCancel={() => {
+            setShowForm(false);
+            setEditing(null);
+          }}
           onSaved={() => {
             setShowForm(false);
+            setEditing(null);
             setReloadKey((k) => k + 1);
           }}
         />
@@ -210,12 +240,13 @@ function ChildrenTab({ token, onLogout }) {
               <th>Guardian</th>
               <th>Contact</th>
               <th>Address</th>
+              <th></th>
             </tr>
           </thead>
           <tbody>
             {children.length === 0 && (
               <tr>
-                <td colSpan="8" className="muted center">
+                <td colSpan="9" className="muted center">
                   No records yet.
                 </td>
               </tr>
@@ -232,6 +263,17 @@ function ChildrenTab({ token, onLogout }) {
                 <td>{c.guardian_name}</td>
                 <td>{c.guardian_contact}</td>
                 <td>{c.purok_address}</td>
+                <td>
+                  <button
+                    className="secondary"
+                    onClick={() => {
+                      setEditing(c);
+                      setShowForm(true);
+                    }}
+                  >
+                    Edit
+                  </button>
+                </td>
               </tr>
             ))}
           </tbody>
