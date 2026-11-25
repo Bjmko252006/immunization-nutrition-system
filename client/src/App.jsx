@@ -171,6 +171,19 @@ function ChildrenTab({ token, onLogout }) {
   const [error, setError] = useState('');
   const [showForm, setShowForm] = useState(false);
   const [editing, setEditing] = useState(null);
+
+  const remove = async (c) => {
+    const ok = window.confirm(
+      `Delete ${c.child_name} (${c.tcl_number})? Their vaccine and nutrition records will also be deleted. This cannot be undone.`
+    );
+    if (!ok) return;
+    try {
+      await api(`/children/${c._id}`, { method: 'DELETE', token });
+      setReloadKey((k) => k + 1);
+    } catch (err) {
+      setError(err.message);
+    }
+  };
   const [reloadKey, setReloadKey] = useState(0);
 
   useEffect(() => {
@@ -273,6 +286,9 @@ function ChildrenTab({ token, onLogout }) {
                     }}
                   >
                     Edit
+                  </button>{' '}
+                  <button className="secondary" onClick={() => remove(c)}>
+                    Delete
                   </button>
                 </td>
               </tr>

@@ -2,6 +2,7 @@ const express = require('express');
 const mongoose = require('mongoose');
 const Child = require('../models/Child');
 const NutritionAssessment = require('../models/NutritionAssessment');
+const ImmunizationRecord = require('../models/ImmunizationRecord');
 const { protect } = require('../middleware/auth');
 
 const router = express.Router();
@@ -100,6 +101,22 @@ router.put('/:id', async (req, res) => {
       return res.status(409).json({ message: 'TCL number already exists' });
     }
     res.status(400).json({ message: err.message });
+  }
+});
+
+// Burahin ang bata, kasama ang mga bakuna at nutrition record niya
+router.delete('/:id', async (req, res) => {
+  try {
+    if (!mongoose.isValidObjectId(req.params.id)) {
+      return res.status(400).json({ message: 'Invalid child id' });
+    }
+    const child = await Child.findByIdAndDelete(req.params.id);
+    if (!child) return res.status(404).json({ message: 'Child not found' });
+    await ImmunizationRecord.deleteMany({ child_id: child._id });
+    await NutritionAssessment.deleteMany({ child_id: child._id });
+    res.json({ message: 'Child and related records deleted' });
+  } catch (err) {
+    res.status(500).json({ message: 'Server error' });
   }
 });
 
