@@ -5,7 +5,13 @@ const cors = require('cors');
 const { protect, requireRole } = require('./middleware/auth');
 
 const app = express();
-app.use(cors());
+
+// CORS_ORIGIN = address ng website (halimbawa https://app.vercel.app).
+// Kung walang laman (local na development), bukas sa lahat.
+const allowedOrigins = process.env.CORS_ORIGIN
+  ? process.env.CORS_ORIGIN.split(',').map((s) => s.trim())
+  : true;
+app.use(cors({ origin: allowedOrigins }));
 app.use(express.json());
 
 app.get('/', (req, res) => {
